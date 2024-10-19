@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supplier-svc
+spec:
+  selector:
+    matchLabels:
+      app: supplier-svc
+  template:
+    metadata:
+      labels:
+        app: supplier-svc
+    spec:
+      containers:
+      - name: supplier-svc
+        image: supplier-svc
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ConnectionStrings__DefaultConnection
+            valueFrom:
+                secretKeyRef:
+                  name: supplier-secret
+                  key: connString
+          - name: ASPNETCORE_URLS
+            value: http://+:80
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: supplier-clusterip
+spec:
+  selector:
+    app: supplier-svc
+  ports:
+  - port: 80
+    targetPort: 80
+
